@@ -15,6 +15,10 @@
 <body>
 <table id="listaus">
 	<thead>	
+	<tr>
+			<th colspan="4" class="oikealle"><span id="uusiAsiakas">Lisää uusi asiakas</span></th>
+		</tr>	
+	
 		<tr>
 			<th class="oikealle">Hakusana:</th>
 			<th colspan="2"><input type="text" id="hakusana"></th>
@@ -32,6 +36,10 @@
 </table>
 <script>
 $(document).ready(function(){
+	$("#uusiAsiakas").click(function(){
+		document.location="lisaaasiakas.jsp";
+	});
+	
 	
 	haeAsiakkaat();
 	$("#hakunappi").click(function(){		
@@ -54,7 +62,8 @@ function haeAsiakkaat(){
         	htmlStr+="<td>"+field.etunimi+"</td>";
         	htmlStr+="<td>"+field.sukunimi+"</td>";
         	htmlStr+="<td>"+field.puhelin+"</td>";
-        	htmlStr+="<td>"+field.sposti+"</td>";  
+        	htmlStr+="<td>"+field.sposti+"</td>";
+        	htmlStr+="<td>Poista</td>"; 
         	htmlStr+="</tr>";
         	$("#listaus tbody").append(htmlStr);
         });	
