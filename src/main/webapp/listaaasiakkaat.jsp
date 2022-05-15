@@ -12,17 +12,18 @@
 }
 </style>
 </head>
-<body>
+<body onkeydown="tutkiKey(event)">
 <table id="listaus">
 	<thead>	
 	<tr>
-			<th colspan="4" class="oikealle"><span id="uusiAsiakas">Lisää uusi asiakas</span></th>
+			<th colspan="4" id="ilmo"></th>
+			<th><a id="uusiAsiakas" href="lisaaasiakas.jsp">Lisää uusi asiakas</a></th>
 		</tr>	
 	
 		<tr>
 			<th class="oikealle">Hakusana:</th>
-			<th colspan="2"><input type="text" id="hakusana"></th>
-			<th><input type="button" value="hae" id="hakunappi"></th>
+			<th colspan="3"><input type="text" id="hakusana"></th>
+			<th><input type="button" value="hae" id="hakunappi" onclick="haeTiedot()"></th>
 		</tr>			
 		<tr>
 			<th>Etunimi</th>
@@ -31,44 +32,64 @@
 			<th>Sposti</th>							
 		</tr>
 	</thead>
-	<tbody>
+	<tbody id="tbody">
 	</tbody>
 </table>
 <script>
-$(document).ready(function(){
-	$("#uusiAsiakas").click(function(){
-		document.location="lisaaasiakas.jsp";
-	});
-	
-	
-	haeAsiakkaat();
-	$("#hakunappi").click(function(){		
-		haeAsiakkaat();
-	});
-	$(document.body).on("keydown", function(event){
-		  if(event.which==13){ 
-			  haeAsiakkaat();
-		  }
-	});
-	$("#hakusana").focus();/
-});	
 
-function haeAsiakkaat(){
-	$("#listaus tbody").empty();
-	$.ajax({url:"asiakkaat/"+$("#hakusana").val(), type:"GET", dataType:"json", success:function(result){		
-		$.each(result.asiakkaat, function(i, field){  
-        	var htmlStr;
+haeTiedot();	
+document.getElementById("hakusana").focus();
+
+function tutkiKey(event){
+	if(event.keyCode==13){
+		haeTiedot();
+	}		
+}
+
+function haeTiedot(){	
+	document.getElementById("tbody").innerHTML = "";
+	fetch("asiakkaat/" + document.getElementById("hakusana").value,{
+	      method: 'GET'
+	    })
+	.then(function (response) {
+		return response.json()	
+	})
+	.then(function (responseJson) {		
+		var asiakkaat = responseJson.asiakkaat;	
+		var htmlStr="";
+		for(var i=0;i<asiakkaat.length;i++){			
         	htmlStr+="<tr>";
-        	htmlStr+="<td>"+field.etunimi+"</td>";
-        	htmlStr+="<td>"+field.sukunimi+"</td>";
-        	htmlStr+="<td>"+field.puhelin+"</td>";
-        	htmlStr+="<td>"+field.sposti+"</td>";
-        	htmlStr+="<td><a href='muutaauto.jsp?rekno="+field.puhelin+"'>Muuta</a>&nbsp;";
-        	htmlStr+="<span class='poista' onclick=poista('"+field.puhelin+"')>Poista</span></td>"; 
-        	htmlStr+="</tr>";
-        	$("#listaus tbody").append(htmlStr);
-        });	
-    }});
+        	htmlStr+="<td>"+asiakkaat[i].etunimi+"</td>";
+        	htmlStr+="<td>"+asiakkaat[i].sukunimi+"</td>";
+        	htmlStr+="<td>"+asiakkaat[i].puhelin+"</td>";
+        	htmlStr+="<td>"+asiakkaat[i].sposti+"</td>";  
+        	htmlStr+="<td><a href='muutaasiakas.jsp?puhelin="+asiakkaat[i].puhelin+"'>Muuta</a>&nbsp;";
+        	htmlStr+="<span class='poista' onclick=poista('"+asiakkaat[i].puhelin+"')>Poista</span></td>";
+        	htmlStr+="</tr>";        	
+		}
+		document.getElementById("tbody").innerHTML = htmlStr;		
+	})	
+}
+
+function poista(puhelin){
+	if(confirm("Poista asiakas " + puhelin +"?")){	
+		fetch("asiakkaat/"+ puhelin,{
+		      method: 'DELETE'		      	      
+		    })
+		.then(function (response) {
+			return response.json()
+		})
+		.then(function (responseJson) {
+			var vastaus = responseJson.response;		
+			if(vastaus==0){
+				document.getElementById("ilmo").innerHTML= "Asiakkaan poisto epäonnistui.";
+	        }else if(vastaus==1){	        	
+	        	document.getElementById("ilmo").innerHTML="Asiakkaan " + puhelin +" poisto onnistui.";
+				haeTiedot();        	
+			}	
+			setTimeout(function(){ document.getElementById("ilmo").innerHTML=""; }, 5000);
+		})		
+	}	
 }
 </script>
 </body>
